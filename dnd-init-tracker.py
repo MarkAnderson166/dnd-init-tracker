@@ -14,8 +14,9 @@ class MainApplication(tk.Tk):
 
   def __init__(self):
     super().__init__()
-    self.title("Main Application")
+    self.title("Initiative Tracker")
     self.geometry("350x670")
+    self.minsize(350, 670)
     self.attributes('-topmost', True)
     self.configure(bg='#222')
     self.create_widgets()
@@ -23,81 +24,84 @@ class MainApplication(tk.Tk):
     self.highlight_tag = "highlight"
     self.load()
 
-
   def create_widgets(self):
-
     button_values = [1, 5, 10, 15, 20, 25]
     padding = 3
     width = 4
     fontsize = 22
 
+    # Configure resizing for rows and columns
+    for i in range(14):  # rows 0 to 13
+      self.grid_rowconfigure(i, weight=1, minsize=30)
+    for i in range(3):  # columns 0 to 2
+      self.grid_columnconfigure(i, weight=20, minsize=50)
+
     self.style = ttk.Style()
     self.style.theme_use("clam")
-    self.style.configure('TButton', background='#522', foreground='#bbb', relief='flat',font=("Arial", fontsize-4), width=width)
+    self.style.configure('TButton', background='#522', foreground='#bbb', relief='flat',
+                         font=("Arial", fontsize - 4), width=width)
     self.style.map('TButton', background=[('active', '#555')])
 
-    self.style.configure("Custom.TEntry", fieldbackground="#000", foreground="#aaa",bordercolor="#312",lightcolor="#000",darkcolor="#000",borderwidth=4,relief="flat")
-    self.style.map("Custom.TEntry",fieldbackground=[('focus','#353')])
+    self.style.configure("Custom.TEntry", fieldbackground="#000", foreground="#aaa",
+                         bordercolor="#312", lightcolor="#000", darkcolor="#000",
+                         borderwidth=4, relief="flat")
+    self.style.map("Custom.TEntry", fieldbackground=[('focus', '#353')])
 
-    self.style.configure("Selected.TEntry", fieldbackground="#444", foreground="#fff" )
-    self.style.configure("Turn.TEntry", fieldbackground="#262", foreground="#fff" )
-
-    self.style.configure("Highlighted.TEntry", fieldbackground="#353", foreground="#fff", bordercolor="#312",relief="flat", padding=0)
+    self.style.configure("Selected.TEntry", fieldbackground="#444", foreground="#fff")
+    self.style.configure("Turn.TEntry", fieldbackground="#262", foreground="#fff")
+    self.style.configure("Highlighted.TEntry", fieldbackground="#353", foreground="#fff",
+                         bordercolor="#312", relief="flat", padding=0)
 
     self.text_boxes = []
 
     for i in range(14):
       entry = ttk.Entry(self, width=12, font=("Arial", fontsize), style="Custom.TEntry")
-      entry.grid(row=i, column=2, padx=padding, pady=padding)
+      entry.grid(row=i, column=2, padx=padding, pady=padding, sticky='nsew')
       setattr(self, f'text_box{i+1}', entry)
       self.text_boxes.append(entry)
       entry.bind("<Button-1>", lambda e, ent=entry: self.set_current_textbox(ent))
 
-      # Buttons
-    self.sort_button = ttk.Button(self, text="Sort", width=width, command=self.sort_textbox_entries,style="TButton",)
+    self.sort_button = ttk.Button(self, text="Sort", width=width,
+                                  command=self.sort_textbox_entries, style="TButton")
     self.sort_button.grid(row=0, column=0, columnspan=2, padx=padding, pady=padding, sticky="nsew")
 
     for i, value in enumerate(button_values):
       row = i // 2
       col = i % 2
-      button = ttk.Button(self, text=str(value), width=width, command=lambda v=value: self.update_textbox(v), style="TButton")
-      button.grid(row=row+2, column=col, padx=padding, pady=padding,sticky="nsew")
+      button = ttk.Button(self, text=str(value), width=width,
+                          command=lambda v=value: self.update_textbox(v), style="TButton")
+      button.grid(row=row + 2, column=col, padx=padding, pady=padding, sticky="nsew")
 
-    self.up_button = ttk.Button(self, text="+", command=lambda v=-7: self.update_textbox(v),style="TButton")
-    self.up_button.grid(row=5, column=1, rowspan=2, padx=padding, pady=padding,sticky="nsew")
+    self.up_button = ttk.Button(self, text="+", command=lambda v=-7: self.update_textbox(v), style="TButton")
+    self.up_button.grid(row=5, column=1, rowspan=2, padx=padding, pady=padding, sticky="nsew")
 
-    self.down_button = ttk.Button(self,text="-", command=lambda v=-8: self.update_textbox(v),style="TButton")
-    self.down_button.grid(row=5, column=0, rowspan=2, padx=padding, pady=padding,sticky="nsew")
+    self.down_button = ttk.Button(self, text="-", command=lambda v=-8: self.update_textbox(v), style="TButton")
+    self.down_button.grid(row=5, column=0, rowspan=2, padx=padding, pady=padding, sticky="nsew")
 
-    self.roll_button=ttk.Button(self,text="Roll",command=lambda v=-9: self.update_textbox(v),style="TButton")
+    self.roll_button = ttk.Button(self, text="Roll", command=lambda v=-9: self.update_textbox(v), style="TButton")
     self.roll_button.grid(row=7, column=0, padx=padding, pady=padding, columnspan=2, sticky="nsew")
 
     self.move_up_button = ttk.Button(self, text="^", command=self.move_entry_up, style="TButton")
-    self.move_up_button.grid(row=9, column=0, columnspan=1, sticky="nsew", padx=padding, pady=padding)
+    self.move_up_button.grid(row=9, column=0, sticky="nsew", padx=padding, pady=padding)
 
     self.move_down_button = ttk.Button(self, text="v", command=self.move_entry_down, style="TButton")
-    self.move_down_button.grid(row=9, column=1, columnspan=1, sticky="nsew", padx=padding, pady=padding)
+    self.move_down_button.grid(row=9, column=1, sticky="nsew", padx=padding, pady=padding)
 
-    self.next_button = ttk.Button(self, text="Strip", width=width, command=self.strip_numbers, style="TButton",)
-    self.next_button.grid(row=10, column=0, rowspan=1, columnspan=2, padx=padding, pady=padding, sticky="nsew")
+    self.strip_button = ttk.Button(self, text="Strip", width=width, command=self.strip_numbers, style="TButton")
+    self.strip_button.grid(row=10, column=0, columnspan=2, padx=padding, pady=padding, sticky="nsew")
 
-    self.next_button = ttk.Button(self, text="Next", width=width, command=self.move_next, style="TButton",)
+    self.next_button = ttk.Button(self, text="Next", width=width, command=self.move_next, style="TButton")
     self.next_button.grid(row=12, column=0, rowspan=2, columnspan=2, padx=padding, pady=padding, sticky="nsew")
 
     self.selected_value = None
     self.current_entry = None
 
-
   def set_current_textbox(self, textbox):
-
     for entry in self.text_boxes:
-        entry.configure(style="Custom.TEntry")
-
+      entry.configure(style="Custom.TEntry")
     textbox.configure(style="Selected.TEntry")
-
     self.current_entry = textbox
     self.selected_value = None
-
 
   def update_textbox(self, value):
     if not self.current_entry:
@@ -106,15 +110,13 @@ class MainApplication(tk.Tk):
     if value == -9:
       value = randint(1, 20)
     elif value == -8:
-      value = current_value -1
+      value = current_value - 1
     elif value == -7:
-      value = current_value +1
-
+      value = current_value + 1
     new = f"{value:>2}: {name}"
     self.current_entry.delete(0, tk.END)
     self.current_entry.insert(0, new)
     self.save()
-
 
   def get_current_value(self):
     value = 0
@@ -124,9 +126,9 @@ class MainApplication(tk.Tk):
       if ":" in text:
         parts = text.split(":", 1)
         try:
-            value = int(parts[0].strip())
+          value = int(parts[0].strip())
         except ValueError:
-            value = 0
+          value = 0
         name = parts[1].strip()
       else:
         parts = text.split()
@@ -137,7 +139,6 @@ class MainApplication(tk.Tk):
           except ValueError:
             name = text
     return value, name
-
 
   def sort_textbox_entries(self):
     entries = []
@@ -180,13 +181,10 @@ class MainApplication(tk.Tk):
     self.selected_value = None
     self.save()
 
-
   def move_next(self):
-
     non_empty = [i for i, e in enumerate(self.text_boxes) if e.get().strip()]
     if not non_empty:
       return
-
     if self.turn_index is None or self.turn_index not in non_empty:
       self.turn_index = non_empty[0]
     else:
@@ -219,21 +217,17 @@ class MainApplication(tk.Tk):
   def load(self):
     if not os.path.exists("names.txt"):
       return
-
     with open("names.txt", "r") as f:
       try:
         data = json.load(f)
       except json.JSONDecodeError:
         return
-
     entries = data.get("entries", [])
     for entry, text in zip(self.text_boxes, entries):
       entry.delete(0, tk.END)
       entry.insert(0, text)
-
     self.turn_index = data.get("turn_index", 0)
     self.update_highlighted_box()
-
 
   def strip_numbers(self):
     confirm = messagebox.askyesno("Confirm", "Strip all rolls?")
@@ -248,61 +242,43 @@ class MainApplication(tk.Tk):
         entry.insert(0, name)
     self.save()
 
-
   def move_entry_up(self):
-      if not self.current_entry:
-        return
-
-      index = None
-      for i, entry in enumerate(self.text_boxes):
-        if entry == self.current_entry:
-          index = i
-          break
-
-      if index is not None and index > 0:
-        current_text = self.text_boxes[index].get()
-        above_text = self.text_boxes[index - 1].get()
-
-        # Swap text
-        self.text_boxes[index].delete(0, tk.END)
-        self.text_boxes[index].insert(0, above_text)
-
-        self.text_boxes[index - 1].delete(0, tk.END)
-        self.text_boxes[index - 1].insert(0, current_text)
-
-        # Keep selection
-        self.set_current_textbox(self.text_boxes[index - 1])
-        self.save()
-
-
-  def move_entry_down(self):
     if not self.current_entry:
       return
-
     index = None
     for i, entry in enumerate(self.text_boxes):
       if entry == self.current_entry:
         index = i
         break
+    if index is not None and index > 0:
+      current_text = self.text_boxes[index].get()
+      above_text = self.text_boxes[index - 1].get()
+      self.text_boxes[index].delete(0, tk.END)
+      self.text_boxes[index].insert(0, above_text)
+      self.text_boxes[index - 1].delete(0, tk.END)
+      self.text_boxes[index - 1].insert(0, current_text)
+      self.set_current_textbox(self.text_boxes[index - 1])
+      self.save()
 
+  def move_entry_down(self):
+    if not self.current_entry:
+      return
+    index = None
+    for i, entry in enumerate(self.text_boxes):
+      if entry == self.current_entry:
+        index = i
+        break
     if index is not None and index < len(self.text_boxes) - 1:
       current_text = self.text_boxes[index].get()
       below_text = self.text_boxes[index + 1].get()
-
-      # Swap text
       self.text_boxes[index].delete(0, tk.END)
       self.text_boxes[index].insert(0, below_text)
-
       self.text_boxes[index + 1].delete(0, tk.END)
       self.text_boxes[index + 1].insert(0, current_text)
-
-      # Keep selection
       self.set_current_textbox(self.text_boxes[index + 1])
       self.save()
-
 
 
 if __name__ == "__main__":
   app = MainApplication()
   app.mainloop()
-
